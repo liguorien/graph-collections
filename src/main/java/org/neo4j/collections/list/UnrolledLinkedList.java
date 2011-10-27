@@ -211,6 +211,26 @@ public class UnrolledLinkedList implements NodeCollection
 
         return false;
     }
+    
+    public void delete() {
+        acquireLock(LockType.WRITE);
+        Node head = getHead(false);
+        if (head != null) {
+            deletePage(head);
+        }
+        baseNode.delete();
+    }
+
+    private void deletePage(Node page) {
+        Relationship nextPage = page.getSingleRelationship(
+                RelationshipTypes.NEXT_PAGE, Direction.OUTGOING);
+        if (nextPage != null) {
+            deletePage(nextPage.getEndNode());
+        }
+        for (Relationship rel : page.getRelationships()) {
+            rel.delete();
+        }
+    }
 
     @Override
     public Iterator<Node> iterator()
